@@ -1,6 +1,6 @@
 "use strict";
 /*
- Copyright (C) 2012-2017 Grant Galitz
+ Copyright (C) 2012-2019 Grant Galitz
 
  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -21,7 +21,7 @@ var IodineGUI = {
     mixerInput:null,
     currentSpeed:[false,0],
     defaults:{
-        timerRate:16,
+        timerRate:8,
         sound:true,
         volume:1,
         skipBoot:false,
@@ -78,8 +78,8 @@ window.onload = function () {
     registerDefaultSettings();
     //Initialize Iodine:
     registerIodineHandler();
-    //Initialize the timer:
-    registerTimerHandler();
+	//Initialize the timer:
+	calculateTiming();
     //Initialize the graphics:
     registerBlitterHandler();
     //Initialize the audio:
@@ -100,16 +100,19 @@ function registerIodineHandler() {
         if (typeof SharedArrayBuffer != "function" || typeof Atomics != "object") {
             throw null;
         }
-        else if (!IodineGUI.defaults.toggleOffthreadCPU) {
+        else if (!IodineGUI.defaults.toggleOffthreadCPU && IodineGUI.defaults.toggleOffthreadGraphics) {
             //Try starting Iodine normally, but initialize offthread gfx:
             IodineGUI.Iodine = new IodineGBAWorkerGfxShim();
         }
-        else {
+        else if (IodineGUI.defaults.toggleOffthreadGraphics) {
             //Try starting Iodine in a webworker:
             IodineGUI.Iodine = new IodineGBAWorkerShim();
             //In order for save on page unload, this needs to be done:
             addEvent("beforeunload", window, registerBeforeUnloadHandler);
         }
+		else {
+			throw null;
+		}
     }
     catch (e) {
         //Otherwise just run on-thread:
@@ -123,13 +126,108 @@ function registerBeforeUnloadHandler(e) {
     }
     return "IodineGBA needs to process your save data, leaving now may result in not saving current data.";
 }
-function registerTimerHandler() {
-    IodineGUI.defaults.timerRate = 16;
-    IodineGUI.Iodine.setIntervalRate(IodineGUI.defaults.timerRate | 0);
-}
 function initTimer() {
+	IodineGUI.Iodine.setIntervalRate(+IodineGUI.defaults.timerRate);
     IodineGUI.coreTimerID = setInterval(function () {
         IodineGUI.Iodine.timerCallback(((+(new Date()).getTime()) - (+IodineGUI.startTime)) >>> 0);
+    }, IodineGUI.defaults.timerRate | 0);
+	findRealClock();
+}
+function calculateTiming() {
+	IodineGUI.Iodine.setIntervalRate(+IodineGUI.defaults.timerRate);
+	findRealClock();
+}
+function startTimer() {
+	IodineGUI.coreTimerID = setInterval(function () {
+        IodineGUI.Iodine.timerCallback(((+(new Date()).getTime()) - (+IodineGUI.startTime)) >>> 0);
+    }, IodineGUI.defaults.timerRate | 0);
+}
+function updateTimer(newRate) {
+	newRate = newRate | 0;
+	if ((newRate | 0) != (IodineGUI.defaults.timerRate | 0)) {
+		IodineGUI.defaults.timerRate = newRate | 0;
+		IodineGUI.Iodine.setIntervalRate(+IodineGUI.defaults.timerRate);
+		if (IodineGUI.isPlaying) {
+			if (IodineGUI.coreTimerID) {
+				clearInterval(IodineGUI.coreTimerID);
+			}
+			initTimer();
+		}
+	}
+}
+function findRealClock() {
+	var count = 0;
+	var startTime = +(new Date()).getTime();
+	var realTimer = setInterval(function () {
+		if (!IodineGUI.suspended) {
+			count = ((count | 0) + 1) | 0;
+			if (count == 20) {
+				var timeDiff = ((+(new Date()).getTime()) - (+startTime)) >>> 0;
+				var trueRate = timeDiff / 20;
+				if ((+trueRate) > 17) {
+					count = 0;
+				}
+				else {
+					var delta = +((+trueRate) - (IodineGUI.defaults.timerRate | 0));
+					if ((IodineGUI.defaults.timerRate | 0) == 16) {
+						if (delta > -0.1 && delta < 0.1) {
+							clearInterval(realTimer);
+						}
+						else if ((trueRate - 1000/64) > -0.1 && (trueRate - 1000/64) < 0.1) {
+							IodineGUI.Iodine.setIntervalRate(1000/64);
+							clearInterval(realTimer);
+						}
+						else if ((trueRate - 50/3) > -0.1 && (trueRate - 50/3) < 0.1) {
+							IodineGUI.Iodine.setIntervalRate(50/3);
+							clearInterval(realTimer);
+						}
+						else {
+							count = 0;
+						}
+					}
+					else if ((IodineGUI.defaults.timerRate | 0) == 4) {
+						if (delta > -0.1 && delta < 0.1) {
+							clearInterval(realTimer);
+						}
+						else if ((trueRate - 25/6) > -0.1 && (trueRate - 25/6) < 0.1) {
+							IodineGUI.Iodine.setIntervalRate(25/6);
+							clearInterval(realTimer);
+						}
+						else {
+							count = 0;
+						}
+					}
+					else if ((IodineGUI.defaults.timerRate | 0) == 8) {
+						if (delta > -0.1 && delta < 0.1) {
+							clearInterval(realTimer);
+						}
+						else if ((trueRate - 25/3) > -0.1 && (trueRate - 25/3) < 0.1) {
+							IodineGUI.Iodine.setIntervalRate(25/3);
+							clearInterval(realTimer);
+						}
+						else {
+							count = 0;
+						}
+					}
+					else {
+						if (delta > -0.1 && delta < 0.1) {
+							clearInterval(realTimer);
+						}
+						else if (trueRate < 16) {
+							IodineGUI.Iodine.setIntervalRate(+trueRate);
+							clearInterval(realTimer);
+						}
+						else {
+							count = 0;
+						}
+					}
+					
+				}
+			}
+		}
+		else {
+			count = 0;
+		}
     }, IodineGUI.defaults.timerRate | 0);
 }
 function registerBlitterHandler() {

@@ -1,6 +1,6 @@
 "use strict";
 /*
- Copyright (C) 2012-2016 Grant Galitz
+ Copyright (C) 2012-2019 Grant Galitz
 
  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -277,17 +277,17 @@ GameBoyAdvanceEmulator.prototype.resetMetrics = function () {
 GameBoyAdvanceEmulator.prototype.calculateTimings = function () {
     this.clocksPerSecond = Math.min((+this.settings.emulatorSpeed) * 0x1000000, 0x3F000000) | 0;
     this.clocksPerMilliSecond = +((this.clocksPerSecond | 0) / 1000);
-    this.CPUCyclesPerIteration = ((+this.clocksPerMilliSecond) * (this.timerIntervalRate | 0)) | 0;
+    this.CPUCyclesPerIteration = ((+this.clocksPerMilliSecond) * (+this.timerIntervalRate)) | 0;
     this.CPUCyclesTotal = this.CPUCyclesPerIteration | 0;
     this.initializeAudioLogic();
     this.reinitializeAudio();
     this.invalidateMetrics();
 }
 GameBoyAdvanceEmulator.prototype.setIntervalRate = function (intervalRate) {
-    intervalRate = intervalRate | 0;
-    if ((intervalRate | 0) > 0 && (intervalRate | 0) < 1000) {
-        if ((intervalRate | 0) != (this.timerIntervalRate | 0)) {
-            this.timerIntervalRate = intervalRate | 0;
+    intervalRate = +intervalRate;
+    if ((+intervalRate) > 0 && (+intervalRate) < 1000) {
+        if ((+intervalRate) != (+this.timerIntervalRate)) {
+            this.timerIntervalRate = +intervalRate;
             this.calculateTimings();
         }
     }
