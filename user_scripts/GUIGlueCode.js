@@ -14,6 +14,8 @@ function registerGUIEvents() {
     //Add DOM events:
     addEvent("keydown", document, keyDown);
     addEvent("keyup", document, keyUpPreprocess);
+    addEvent("gamepadconnected", window, gamepadStart);
+    addEvent("gamepadisconnected", window, gamepadStop);
     addEvent("change", document.getElementById("rom_load"), fileLoadROM);
     addEvent("change", document.getElementById("bios_load"), fileLoadBIOS);
     addEvent("click", document.getElementById("play"), function (e) {
