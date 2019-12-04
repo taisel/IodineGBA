@@ -177,6 +177,10 @@ if (typeof Atomics == "object") {
     if (typeof Atomics.futexWait == "function" && typeof Atomics.wait == "undefined") {
         //Polyfill in deprecated call names:
         Atomics.wait = Atomics.futexWait;
-        Atomics.wake = Atomics.futexWake;
+        Atomics.notify = Atomics.futexWake;
+    }
+	else if (typeof Atomics.wake == "function" && typeof Atomics.notify == "undefined") {
+        //Polyfill in deprecated call names:
+        Atomics.notify = Atomics.wake;
     }
 }

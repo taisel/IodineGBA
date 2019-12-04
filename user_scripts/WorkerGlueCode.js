@@ -257,7 +257,7 @@ IodineGBAWorkerShim.prototype.graphicsHeartBeat = function () {
         //Copy the buffer out to local:
         this.consumeGraphicsBuffer();
         //Wake up the producer thread:
-        Atomics.wake(this.gfxCounters, 2, 1);
+        Atomics.notify(this.gfxCounters, 2, 1);
     }
 }
 IodineGBAWorkerShim.prototype.consumeGraphicsBuffer = function () {

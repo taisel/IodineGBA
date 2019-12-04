@@ -144,7 +144,7 @@ GameBoyAdvanceGraphicsRendererShim.prototype.shareDynamicBuffers = function () {
         });
     }
      //Wake up the producer "GPU" thread:
-     Atomics.wake(gfxCounters, 2, 1);
+     Atomics.notify(gfxCounters, 2, 1);
 }
 GameBoyAdvanceGraphicsRendererShim.prototype.pushCommand = function (command, data) {
     command = command | 0;
