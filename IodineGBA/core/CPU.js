@@ -642,6 +642,17 @@ GameBoyAdvanceCPU.prototype.read16 = function (address) {
     this.IOCore.wait.NonSequentialBroadcast();
     return data | 0;
 }
+GameBoyAdvanceCPU.prototype.readSigned16 = function (address) {
+    address = address | 0;
+    //Updating the address bus away from PC fetch:
+    this.IOCore.wait.NonSequentialBroadcast();
+    var data = this.memory.memoryRead16(address | 0) << 16;
+    //Unaligned access gets sign extended:
+	data = data >> ((16 + ((address & 0x1) << 3)) | 0);
+    //Updating the address bus back to PC fetch:
+    this.IOCore.wait.NonSequentialBroadcast();
+    return data | 0;
+}
 GameBoyAdvanceCPU.prototype.read8 = function (address) {
     address = address | 0;
     //Updating the address bus away from PC fetch:

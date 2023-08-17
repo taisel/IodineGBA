@@ -1068,7 +1068,7 @@ ARMInstructionSet.prototype.LDRSH = function () {
     //Perform signed halfword load calculations:
     var address = this.operand2OP_LoadStore1() | 0;
     //Read from memory location:
-    this.guard12OffsetRegisterWrite((this.CPUCore.read16(address | 0) << 16) >> 16);
+    this.guard12OffsetRegisterWrite(this.CPUCore.readSigned16(address | 0) | 0);
     //Internal Cycle:
     this.wait.CPUInternalSingleCyclePrefetch();
 }
@@ -1098,7 +1098,7 @@ ARMInstructionSet.prototype.LDRSH2 = function () {
     //Perform signed halfword load calculations:
     var address = this.operand2OP_LoadStore2() | 0;
     //Read from memory location:
-    this.guard12OffsetRegisterWrite((this.CPUCore.read16(address | 0) << 16) >> 16);
+    this.guard12OffsetRegisterWrite(this.CPUCore.readSigned16(address | 0) | 0);
     //Internal Cycle:
     this.wait.CPUInternalSingleCyclePrefetch();
 }

@@ -918,7 +918,7 @@ THUMBInstructionSet.prototype.LDRBreg = function () {
 }
 THUMBInstructionSet.prototype.LDRSHreg = function () {
     //Load Signed Half-Word Into Register
-    var data = (this.CPUCore.read16(((this.read6OffsetLowRegister() | 0) + (this.read3OffsetLowRegister() | 0)) | 0) << 16) >> 16;
+var data = this.CPUCore.readSigned16(((this.read6OffsetLowRegister() | 0) + (this.read3OffsetLowRegister() | 0)) | 0) | 0;
     this.write0OffsetLowRegister(data | 0);
     //Update PC:
     this.incrementProgramCounter();
